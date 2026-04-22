@@ -837,8 +837,14 @@
     margin-left: auto;
     display: flex;
     align-items: center;
+    gap: 0;
+    padding: 0;
+  }
+  #authArea {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    padding: 8px 0;
+    padding: 8px 8px 8px 4px;
   }
   .btn-login {
     display: flex;
@@ -911,7 +917,18 @@
   }
   .btn-submit-note:hover { opacity: 0.85; }
   .btn-submit-note:disabled { opacity: 0.4; cursor: not-allowed; }
-  .notes-list { display: flex; flex-direction: column; gap: 12px; }
+  .notes-guest-prompt {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px 20px;
+    margin-bottom: 24px; font-size: 13px; color: var(--text2);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .notes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
   .note-card {
     background: var(--bg2); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 14px 16px;
@@ -955,12 +972,9 @@
 <nav class="tab-nav">
   <button class="tab-btn active" id="tab-overview" onclick="showPage('overview')">ETF 一覽</button>
   <button class="tab-btn"        id="tab-history"  onclick="showPage('history')">主動式 ETF 異動歷史</button>
-  <button class="tab-btn"        id="tab-notes"    onclick="showPage('notes')">使用者反饋與筆記</button>
-  <div class="auth-area" id="authArea">
-    <button class="btn-login" id="btnLogin">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      使用 Google 登入
-    </button>
+  <div class="auth-area">
+    <button class="tab-btn" id="tab-notes" onclick="showPage('notes')">使用者反饋與筆記</button>
+    <div id="authArea"></div>
   </div>
 </nav>
 
@@ -1044,23 +1058,23 @@
 ══════════════════════════════════════════════════════════════════════ -->
 <div id="page-notes" class="page" style="display:none">
 <div class="notes-page">
-  <div id="notesLoginPrompt" class="notes-login-prompt" style="display:none">
-    <b>請先登入</b><br>使用 Google 帳號登入後即可留下筆記與反饋
-  </div>
-  <div id="notesInputArea" class="notes-input-area" style="display:none">
+  <div id="notesInputArea" class="notes-input-area">
     <textarea class="notes-textarea" id="noteTextarea" placeholder="寫下你的想法、ETF 觀察或對本站的反饋..."></textarea>
     <div class="notes-input-footer">
       <span class="notes-counter" id="notesCounter">0 / 15 筆</span>
       <button class="btn-submit-note" id="btnSubmitNote">送出筆記</button>
     </div>
   </div>
-  <div class="notes-section-title" id="notesSectionTitle" style="display:none">所有用戶筆記</div>
-  <div class="notes-list" id="notesList"></div>
+  <div id="notesGuestPrompt" class="notes-guest-prompt" style="display:none">
+    💬 登入後即可留言
+  </div>
+  <div class="notes-section-title">所有用戶筆記</div>
+  <div class="notes-list" id="notesList"><div class="notes-empty">載入中...</div></div>
 </div>
 </div><!-- end page-notes -->
 
 <div class="footer">
-  資料來源：各投信公司公告持股　|　僅供參考，不構成投資建議
+  資料來源：各 ETF 公開資訊　|　僅供參考，不構成投資建議
 </div>
 
 <script>
@@ -1580,10 +1594,10 @@ if (HISTORY_DATA.length > 0) {
   const provider = new GoogleAuthProvider();
   const authArea = document.getElementById('authArea');
 
-  const NOTES_COL    = collection(db, 'notes');
-  const MAX_NOTES    = 15;
-  let   currentUser  = null;
-  let   unsubNotes   = null;
+  const NOTES_COL  = collection(db, 'notes');
+  const MAX_NOTES  = 15;
+  let   currentUser = null;
+  let   unsubNotes  = null;
 
   const GOOGLE_SVG = `<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
 
@@ -1594,25 +1608,19 @@ if (HISTORY_DATA.length > 0) {
       ? `<img class="user-avatar" src="${user.photoURL}" alt="${user.displayName}" referrerpolicy="no-referrer">`
       : `<div class="user-avatar-fallback">${initial}</div>`;
     authArea.innerHTML = `
-      <div class="user-info">
-        ${avatar}
-        <span class="user-name">${user.displayName || user.email}</span>
-      </div>
+      <div class="user-info">${avatar}<span class="user-name">${user.displayName || user.email}</span></div>
       <button class="btn-logout" id="btnLogout">登出</button>`;
     document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
   }
 
   function renderLoggedOut() {
-    authArea.innerHTML = `
-      <button class="btn-login" id="btnLogin">
-        ${GOOGLE_SVG} 使用 Google 登入
-      </button>`;
+    authArea.innerHTML = `<button class="btn-login" id="btnLogin">${GOOGLE_SVG} 使用 Google 登入</button>`;
     document.getElementById('btnLogin').addEventListener('click', () =>
       signInWithPopup(auth, provider).catch(err => console.error('Login failed:', err))
     );
   }
 
-  // ── Notes helpers ────────────────────────────────────────────────────────
+  // ── Notes ────────────────────────────────────────────────────────────────
   function fmtTime(ts) {
     if (!ts) return '';
     const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -1627,7 +1635,7 @@ if (HISTORY_DATA.length > 0) {
       ? `<img class="note-avatar" src="${d.photoURL}" referrerpolicy="no-referrer">`
       : `<div class="note-avatar-fallback">${initial}</div>`;
     return `
-      <div class="note-card ${isOwn ? 'own' : ''}" data-id="${docSnap.id}">
+      <div class="note-card ${isOwn ? 'own' : ''}">
         <div class="note-header">
           ${avatar}
           <div class="note-meta">
@@ -1649,20 +1657,18 @@ if (HISTORY_DATA.length > 0) {
     if (btn) btn.disabled = myCount >= MAX_NOTES;
   }
 
+  // Start listener immediately — notes are public (readable without login)
   function startNotesListener() {
-    if (unsubNotes) unsubNotes();
+    if (unsubNotes) return;
     const q = query(NOTES_COL, orderBy('createdAt', 'desc'));
     unsubNotes = onSnapshot(q, (snap) => {
       const list = document.getElementById('notesList');
-      const title = document.getElementById('notesSectionTitle');
       if (!list) return;
       if (snap.empty) {
-        list.innerHTML = '<div class="notes-empty">還沒有任何筆記，成為第一個留言的人吧！</div>';
-        if (title) title.style.display = 'none';
+        list.innerHTML = '<div class="notes-empty">還沒有任何筆記，登入後成為第一個留言的人！</div>';
         updateCounter(0);
         return;
       }
-      if (title) title.style.display = '';
       list.innerHTML = snap.docs.map(renderNoteCard).join('');
       const myCount = snap.docs.filter(d => d.data().uid === currentUser?.uid).length;
       updateCounter(myCount);
@@ -1675,16 +1681,14 @@ if (HISTORY_DATA.length > 0) {
       });
     });
   }
+  startNotesListener();
 
-  function showNotesPage(user) {
-    const prompt = document.getElementById('notesLoginPrompt');
+  function updateInputArea(user) {
     const inputArea = document.getElementById('notesInputArea');
-    const title = document.getElementById('notesSectionTitle');
+    const guestPrompt = document.getElementById('notesGuestPrompt');
     if (user) {
-      if (prompt) prompt.style.display = 'none';
       if (inputArea) inputArea.style.display = '';
-      if (title) title.style.display = '';
-      startNotesListener();
+      if (guestPrompt) guestPrompt.style.display = 'none';
       const btn = document.getElementById('btnSubmitNote');
       if (btn && !btn.dataset.bound) {
         btn.dataset.bound = '1';
@@ -1692,8 +1696,7 @@ if (HISTORY_DATA.length > 0) {
           const ta = document.getElementById('noteTextarea');
           const content = ta.value.trim();
           if (!content) return;
-          const myCountEl = document.getElementById('notesCounter');
-          const myCount = myCountEl ? parseInt(myCountEl.textContent) : 0;
+          const myCount = parseInt(document.getElementById('notesCounter')?.textContent || '0');
           if (myCount >= MAX_NOTES) return;
           btn.disabled = true;
           await addDoc(NOTES_COL, {
@@ -1709,25 +1712,19 @@ if (HISTORY_DATA.length > 0) {
         });
       }
     } else {
-      if (prompt) prompt.style.display = '';
       if (inputArea) inputArea.style.display = 'none';
-      if (title) title.style.display = 'none';
-      if (unsubNotes) { unsubNotes(); unsubNotes = null; }
-      const list = document.getElementById('notesList');
-      if (list) list.innerHTML = '';
+      if (guestPrompt) guestPrompt.style.display = '';
     }
   }
 
-  window.onNotesPageOpen = () => {
-    if (currentUser) startNotesListener();
-  };
+  window.onNotesPageOpen = () => updateInputArea(currentUser);
 
   // ── Auth state ────────────────────────────────────────────────────────────
   onAuthStateChanged(auth, user => {
     currentUser = user;
     if (user) { renderLoggedIn(user); }
     else      { renderLoggedOut();   }
-    showNotesPage(user);
+    updateInputArea(user);
   });
 </script>
 </body>
