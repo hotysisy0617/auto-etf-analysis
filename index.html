@@ -879,6 +879,74 @@
     transition: color 0.2s, border-color 0.2s;
   }
   .btn-logout:hover { color: var(--red); border-color: var(--red); }
+
+  /* ── Notes page ── */
+  .notes-page { max-width: 800px; margin: 0 auto; padding: 24px 20px; }
+  .notes-login-prompt {
+    text-align: center; padding: 80px 20px;
+    color: var(--text3); font-size: 15px;
+  }
+  .notes-input-area {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px; margin-bottom: 24px;
+  }
+  .notes-textarea {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 14px;
+    font-family: var(--sans); padding: 12px; resize: vertical;
+    min-height: 80px; outline: none; transition: border-color 0.2s; line-height: 1.6;
+  }
+  .notes-textarea:focus { border-color: var(--accent); }
+  .notes-textarea::placeholder { color: var(--text3); }
+  .notes-input-footer {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 10px;
+  }
+  .notes-counter { font-size: 12px; color: var(--text3); }
+  .notes-counter.warn { color: var(--gold); }
+  .notes-counter.full { color: var(--red); }
+  .btn-submit-note {
+    background: var(--accent); border: none; border-radius: var(--radius);
+    color: #fff; font-size: 13px; font-family: var(--sans); font-weight: 600;
+    padding: 8px 20px; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-submit-note:hover { opacity: 0.85; }
+  .btn-submit-note:disabled { opacity: 0.4; cursor: not-allowed; }
+  .notes-list { display: flex; flex-direction: column; gap: 12px; }
+  .note-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .note-card.own { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+  .note-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .note-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--border); object-fit: cover; flex-shrink: 0;
+  }
+  .note-avatar-fallback {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .note-meta { flex: 1; min-width: 0; }
+  .note-author { font-size: 13px; font-weight: 600; color: var(--text); }
+  .note-time { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .note-content {
+    font-size: 14px; color: var(--text); line-height: 1.65;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .btn-delete-note {
+    background: none; border: none; color: var(--text3); font-size: 12px;
+    cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    transition: color 0.2s, background 0.2s; flex-shrink: 0;
+  }
+  .btn-delete-note:hover { color: var(--red); background: rgba(248,81,73,0.1); }
+  .notes-empty { text-align: center; padding: 40px; color: var(--text3); font-size: 13px; }
+  .notes-section-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 14px; padding-left: 2px;
+  }
 </style>
 </head>
 <body>
@@ -887,6 +955,7 @@
 <nav class="tab-nav">
   <button class="tab-btn active" id="tab-overview" onclick="showPage('overview')">ETF 一覽</button>
   <button class="tab-btn"        id="tab-history"  onclick="showPage('history')">主動式 ETF 異動歷史</button>
+  <button class="tab-btn"        id="tab-notes"    onclick="showPage('notes')">使用者反饋與筆記</button>
   <div class="auth-area" id="authArea">
     <button class="btn-login" id="btnLogin">
       <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -970,6 +1039,26 @@
 </div>
 </div><!-- end page-history -->
 
+<!-- ══════════════════════════════════════════════════════════════════════
+     Page 3 — 使用者反饋與筆記
+══════════════════════════════════════════════════════════════════════ -->
+<div id="page-notes" class="page" style="display:none">
+<div class="notes-page">
+  <div id="notesLoginPrompt" class="notes-login-prompt" style="display:none">
+    <b>請先登入</b><br>使用 Google 帳號登入後即可留下筆記與反饋
+  </div>
+  <div id="notesInputArea" class="notes-input-area" style="display:none">
+    <textarea class="notes-textarea" id="noteTextarea" placeholder="寫下你的想法、ETF 觀察或對本站的反饋..."></textarea>
+    <div class="notes-input-footer">
+      <span class="notes-counter" id="notesCounter">0 / 15 筆</span>
+      <button class="btn-submit-note" id="btnSubmitNote">送出筆記</button>
+    </div>
+  </div>
+  <div class="notes-section-title" id="notesSectionTitle" style="display:none">所有用戶筆記</div>
+  <div class="notes-list" id="notesList"></div>
+</div>
+</div><!-- end page-notes -->
+
 <div class="footer">
   資料來源：各投信公司公告持股　|　僅供參考，不構成投資建議
 </div>
@@ -1013,6 +1102,9 @@ function showPage(name) {
     renderHistoryWall();
     renderHistoryETFTabs();
     renderHistoryContent();
+  }
+  if (name === 'notes' && typeof window.onNotesPageOpen === 'function') {
+    window.onNotesPageOpen();
   }
 }
 
@@ -1465,11 +1557,13 @@ if (HISTORY_DATA.length > 0) {
 }
 </script>
 
-<!-- ── Firebase Google Auth ── -->
+<!-- ── Firebase Auth + Firestore ── -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, query, orderBy, onSnapshot, where, getDocs }
+    from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA9CJ2FF3DUhmaZxRmKrptU10CSyi9mOfQ",
@@ -1482,11 +1576,18 @@ if (HISTORY_DATA.length > 0) {
 
   const app      = initializeApp(firebaseConfig);
   const auth     = getAuth(app);
+  const db       = getFirestore(app);
   const provider = new GoogleAuthProvider();
   const authArea = document.getElementById('authArea');
 
+  const NOTES_COL    = collection(db, 'notes');
+  const MAX_NOTES    = 15;
+  let   currentUser  = null;
+  let   unsubNotes   = null;
+
   const GOOGLE_SVG = `<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
 
+  // ── Auth UI ──────────────────────────────────────────────────────────────
   function renderLoggedIn(user) {
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
     const avatar = user.photoURL
@@ -1511,9 +1612,122 @@ if (HISTORY_DATA.length > 0) {
     );
   }
 
+  // ── Notes helpers ────────────────────────────────────────────────────────
+  function fmtTime(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function renderNoteCard(docSnap) {
+    const d = docSnap.data();
+    const isOwn = currentUser && currentUser.uid === d.uid;
+    const initial = (d.displayName || d.email || '?')[0].toUpperCase();
+    const avatar = d.photoURL
+      ? `<img class="note-avatar" src="${d.photoURL}" referrerpolicy="no-referrer">`
+      : `<div class="note-avatar-fallback">${initial}</div>`;
+    return `
+      <div class="note-card ${isOwn ? 'own' : ''}" data-id="${docSnap.id}">
+        <div class="note-header">
+          ${avatar}
+          <div class="note-meta">
+            <div class="note-author">${d.displayName || d.email}</div>
+            <div class="note-time">${fmtTime(d.createdAt)}</div>
+          </div>
+          ${isOwn ? `<button class="btn-delete-note" data-id="${docSnap.id}">刪除</button>` : ''}
+        </div>
+        <div class="note-content">${d.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>`;
+  }
+
+  function updateCounter(myCount) {
+    const el = document.getElementById('notesCounter');
+    const btn = document.getElementById('btnSubmitNote');
+    if (!el) return;
+    el.textContent = `${myCount} / ${MAX_NOTES} 筆`;
+    el.className = 'notes-counter' + (myCount >= MAX_NOTES ? ' full' : myCount >= 12 ? ' warn' : '');
+    if (btn) btn.disabled = myCount >= MAX_NOTES;
+  }
+
+  function startNotesListener() {
+    if (unsubNotes) unsubNotes();
+    const q = query(NOTES_COL, orderBy('createdAt', 'desc'));
+    unsubNotes = onSnapshot(q, (snap) => {
+      const list = document.getElementById('notesList');
+      const title = document.getElementById('notesSectionTitle');
+      if (!list) return;
+      if (snap.empty) {
+        list.innerHTML = '<div class="notes-empty">還沒有任何筆記，成為第一個留言的人吧！</div>';
+        if (title) title.style.display = 'none';
+        updateCounter(0);
+        return;
+      }
+      if (title) title.style.display = '';
+      list.innerHTML = snap.docs.map(renderNoteCard).join('');
+      const myCount = snap.docs.filter(d => d.data().uid === currentUser?.uid).length;
+      updateCounter(myCount);
+      list.querySelectorAll('.btn-delete-note').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm('確定刪除這筆筆記？')) return;
+          await deleteDoc(doc(db, 'notes', btn.dataset.id));
+        });
+      });
+    });
+  }
+
+  function showNotesPage(user) {
+    const prompt = document.getElementById('notesLoginPrompt');
+    const inputArea = document.getElementById('notesInputArea');
+    const title = document.getElementById('notesSectionTitle');
+    if (user) {
+      if (prompt) prompt.style.display = 'none';
+      if (inputArea) inputArea.style.display = '';
+      if (title) title.style.display = '';
+      startNotesListener();
+      const btn = document.getElementById('btnSubmitNote');
+      if (btn && !btn.dataset.bound) {
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', async () => {
+          const ta = document.getElementById('noteTextarea');
+          const content = ta.value.trim();
+          if (!content) return;
+          const myCountEl = document.getElementById('notesCounter');
+          const myCount = myCountEl ? parseInt(myCountEl.textContent) : 0;
+          if (myCount >= MAX_NOTES) return;
+          btn.disabled = true;
+          await addDoc(NOTES_COL, {
+            uid:         user.uid,
+            displayName: user.displayName || '',
+            email:       user.email || '',
+            photoURL:    user.photoURL || '',
+            content:     content,
+            createdAt:   new Date(),
+          });
+          ta.value = '';
+          btn.disabled = false;
+        });
+      }
+    } else {
+      if (prompt) prompt.style.display = '';
+      if (inputArea) inputArea.style.display = 'none';
+      if (title) title.style.display = 'none';
+      if (unsubNotes) { unsubNotes(); unsubNotes = null; }
+      const list = document.getElementById('notesList');
+      if (list) list.innerHTML = '';
+    }
+  }
+
+  window.onNotesPageOpen = () => {
+    if (currentUser) startNotesListener();
+  };
+
+  // ── Auth state ────────────────────────────────────────────────────────────
   onAuthStateChanged(auth, user => {
+    currentUser = user;
     if (user) { renderLoggedIn(user); }
     else      { renderLoggedOut();   }
+    showNotesPage(user);
   });
 </script>
 </body>
