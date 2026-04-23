@@ -339,6 +339,21 @@
   .td-name {
     font-weight: 500;
   }
+  .stock-link {
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+  }
+  .stock-link::after {
+    content: ' ↗';
+    font-size: 10px;
+    opacity: 0;
+    color: var(--accent);
+    transition: opacity 0.15s;
+  }
+  .stock-link:hover::after {
+    opacity: 1;
+  }
 
   .dot-row {
     display: flex;
@@ -1269,8 +1284,8 @@ function renderTable() {
     return `
       <tr onclick="toggleExpand(${i}, '${r.ticker}')" data-idx="${i}">
         <td class="td-num" style="color:var(--text3);font-size:11px">${i+1}</td>
-        <td class="td-ticker">${r.ticker}</td>
-        <td class="td-name">${r.name}</td>
+        <td class="td-ticker"><a class="stock-link" href="https://www.wantgoo.com/stock/${r.ticker}/technical-chart" target="_blank" rel="noopener" onclick="event.stopPropagation()">${r.ticker}</a></td>
+        <td class="td-name"><a class="stock-link" href="https://www.wantgoo.com/stock/${r.ticker}/technical-chart" target="_blank" rel="noopener" onclick="event.stopPropagation()">${r.name}</a></td>
         <td><span class="industry-tag">${industry}</span></td>
         <td>
           <div class="dot-row">${dots}<span style="font-family:var(--mono);font-size:13px;margin-left:4px;color:var(--text2)">${r.etf_count}</span></div>
@@ -1393,8 +1408,8 @@ function renderHistoryWall() {
       ${stocks.map(s => `
         <div class="wall-stock-card ${cardClass}">
           <div class="wall-stock-header">
-            <span class="wall-stock-name">${s.name}</span>
-            <span class="wall-stock-ticker">${s.ticker}</span>
+            <a class="stock-link wall-stock-name" href="https://www.wantgoo.com/stock/${s.ticker}/technical-chart" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a>
+            <a class="stock-link wall-stock-ticker" href="https://www.wantgoo.com/stock/${s.ticker}/technical-chart" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.ticker}</a>
           </div>
           ${s.etfs.map(e => renderEtfRow(e, sign, sharesClass)).join('')}
         </div>`).join('')}`;
@@ -1490,9 +1505,9 @@ function renderAdded(items) {
       ${items.map(item => `
         <div class="ci-card ci-card-add">
           <div class="ci-ticker" style="color:var(--green)">
-            ${item.ticker}<span class="ci-badge ci-badge-new">NEW</span>
+            <a class="stock-link" href="https://www.wantgoo.com/stock/${item.ticker}/technical-chart" target="_blank" rel="noopener">${item.ticker}</a><span class="ci-badge ci-badge-new">NEW</span>
           </div>
-          <div class="ci-name">${item.name}</div>
+          <div class="ci-name"><a class="stock-link" href="https://www.wantgoo.com/stock/${item.ticker}/technical-chart" target="_blank" rel="noopener">${item.name}</a></div>
           <div class="ci-weight">權重 <span>${item.weight.toFixed(2)}%</span></div>
           ${item.shares ? `<div class="ci-weight" style="font-size:11px;color:var(--text3)">張數 <span>${Math.round(item.shares / 1000).toLocaleString('en-US')} 張</span></div>` : ''}
           ${item.reason ? `<div class="ci-reason">${item.reason}</div>` : ''}
@@ -1510,9 +1525,9 @@ function renderRemoved(items) {
       ${items.map(item => `
         <div class="ci-card ci-card-rem">
           <div class="ci-ticker" style="color:var(--red)">
-            ${item.ticker}<span class="ci-badge ci-badge-out">OUT</span>
+            <a class="stock-link" href="https://www.wantgoo.com/stock/${item.ticker}/technical-chart" target="_blank" rel="noopener">${item.ticker}</a><span class="ci-badge ci-badge-out">OUT</span>
           </div>
-          <div class="ci-name">${item.name}</div>
+          <div class="ci-name"><a class="stock-link" href="https://www.wantgoo.com/stock/${item.ticker}/technical-chart" target="_blank" rel="noopener">${item.name}</a></div>
           <div class="ci-weight" style="text-decoration:line-through;opacity:0.6">權重 <span>${item.weight.toFixed(2)}%</span></div>
           ${item.shares ? `<div class="ci-weight" style="font-size:11px;color:var(--text3);text-decoration:line-through;opacity:0.6">張數 <span>${Math.round(item.shares / 1000).toLocaleString('en-US')} 張</span></div>` : ''}
           ${item.reason ? `<div class="ci-reason">${item.reason}</div>` : ''}
@@ -1539,8 +1554,8 @@ function renderChanged(items) {
         const sharesDir = sharesDiff ? (sharesDiff >= 0 ? '+' : '') : '';
         return `
           <div class="ci-card ${up ? 'ci-card-up' : 'ci-card-dn'}">
-            <div class="ci-ticker" style="color:var(--accent)">${item.ticker}</div>
-            <div class="ci-name">${item.name}</div>
+            <div class="ci-ticker" style="color:var(--accent)"><a class="stock-link" href="https://www.wantgoo.com/stock/${item.ticker}/technical-chart" target="_blank" rel="noopener">${item.ticker}</a></div>
+            <div class="ci-name"><a class="stock-link" href="https://www.wantgoo.com/stock/${item.ticker}/technical-chart" target="_blank" rel="noopener">${item.name}</a></div>
             <div class="ci-wchange">
               <span style="color:var(--text3)">${item.from_weight.toFixed(2)}%</span>
               <span style="color:var(--text3)">→</span>
@@ -1570,8 +1585,8 @@ function renderHoldingsAfter(holdings, etfColor) {
         ${holdings.map(h => `
           <div class="ha-item ${h.new ? 'new-entry' : ''}">
             ${h.new ? '<span class="new-badge-sm">NEW</span>' : ''}
-            <div class="ha-ticker ${h.new ? 'new-c' : ''}">${h.ticker}</div>
-            <div class="ha-name">${h.name}</div>
+            <div class="ha-ticker ${h.new ? 'new-c' : ''}"><a class="stock-link" href="https://www.wantgoo.com/stock/${h.ticker}/technical-chart" target="_blank" rel="noopener">${h.ticker}</a></div>
+            <div class="ha-name"><a class="stock-link" href="https://www.wantgoo.com/stock/${h.ticker}/technical-chart" target="_blank" rel="noopener">${h.name}</a></div>
             <div class="ha-weight">${h.weight.toFixed(2)}%</div>
             <div class="ha-bar">
               <div class="ha-bar-fill"
